@@ -1,0 +1,9 @@
+Below is a description of how to use the well cropping macro described in Martel et al, 2020 (https://doi.org/10.1094/MPMI-10-19-0295-TA). Example files may be found in the “Examples” directory.
+
+First, the original image files (Original_Images > “AvrRpm1_set1” and “AvrRpm1_set2”) must be cropped to retain solely the wells of the plate (Initial_Plate_Crops > “AvrRpm1_set1_crop” and “AvrRpm1_set2_crop”). The ImageJ-based cropping macro may then be applied to individual images or a folder containing all of the plates to be cropped. To run the macro in ImageJ, select Plugins > Macros > Run… which will open a window from which the cropping macro is to be selected. Once opened, a new window will appear, from which the folder containing all of the initially cropped plate images (“Initial_Plate_Crops” in our example) is to be selected. 
+
+The cropping macro will create a new directory (in the directory from which the plates to be cropped was selected) labeled with the current date and time, in which all individually cropped wells will be saved. Each new image file will be named as follows: original_plate_name.tif_well_position (e.g. AvrRpm1_set1_crop.tif_A1). The well position letter refers to the row (6 rows, A-F), while the number refers to the column (8 columns, 1-8). 
+
+Variants of the macro, which may be used for different plates / plate setups, have been placed in the “Macro_Variants” directory. These include variants for 4x2, 6x6, 8x4 and 10x5 setups and may be used in the same way as described above. 
+
+Note that the plant symptom disease quantification macro PIDIQ (https://github.com/DSGlab/PIDIQ; Laflamme et al, 2020; https://doi.org/10.1094/MPMI-07-16-0129-TA) may be applied to the folder of individually cropped wells directly, by running the macro through ImageJ in a similar fashion to what has been described above for the cropping macro. 
