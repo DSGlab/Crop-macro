@@ -1,0 +1,236 @@
+//////////////////////////////////////////////////////////
+// Alexandre Martel
+// 
+// January 21, 2019
+// 
+//
+// Fully automatic macro that crops each well of an 8 by 4 well plate and saves the images in a new folder
+// Input
+//	- Folder of plate images (pre-cropped to only the plate/image of interest). Should be labaled with the following format for ease of input into GWAS: Psytec#_Plate#
+// Output
+//	- Folder containing 32 images, one of each well of the input 8 by 4 well image. If multiple plates are processed at once, then 32 images per image processed.
+//
+// Release v0.0.1
+//
+//	v0.0.1 Initial Recorded Release (Based on the PIDIQ Macro [Laflamme et al, 2016])
+//
+//////////////////////////////////////////////////////////
+
+
+////////////////////////////////
+// global variables
+var orig = 0; 			//stores name of picture
+
+
+// for getTimeString() function
+var TimeString = 0;				//Date and Time for macro run
+
+
+// for getDateTime() function
+var DateTime = 0;				//Date and Time from Exif info
+
+//for folderChoice() function
+var savedir = 0;		// Directory where files will be saved
+
+var filecount = 0;		// how many files are there?
+var jpgcount = 0;		// how many jpgs in the folder?
+var folderstoprocess = newArray(1000000);	//folder names to process
+var filestoprocess = newArray(1000000);		//file names to process
+
+// begin macro code
+resetImageJ(); // clean up in case there are open windows or ROIs in manager
+getTimeString(); // makes the timestring
+// control structure of macro to allow in-determinate number of images to be processed.
+
+folderChoice(); // select folder(s) for processing
+
+do {
+	choice = getBoolean("Do you want to process another folder?");
+	if (choice==0) {
+		start = getTime();
+		folderstoprocess = Array.trim(folderstoprocess, filecount);
+		filestoprocess = Array.trim(filestoprocess, filecount);
+		
+		setBatchMode(true);
+		
+		for (z=0; z<filestoprocess.length; z++) {
+			
+			roiManager("reset");
+			run("Clear Results");
+			
+			showProgress(z/filestoprocess.length);
+			
+			open(folderstoprocess[z]+filestoprocess[z]);
+			
+			clearScale(); // clear any scale that is present all results will be in pixels
+
+			orig = getTitle();
+				for (i=0; i<8; i++) {
+					selectWindow(orig);
+					run("Duplicate...", "title=A"+i);
+					selectWindow("A"+i); 					//selects the copy of the image to crop
+					image_width = getWidth;					//caculates width of the image
+					image_height = getHeight;					//caculates height of the image
+					well_width = image_width/8;				//caculates relative width of wells within the image
+					well_height = image_height/4;				//caculates relative height of wells within the image	
+					makeRectangle ( well_width*i, well_height*0, well_width, well_height);
+					run("Crop");						
+					saveAs("jpg", savedir + orig + "_A"+i+1);
+					}
+				
+				for (i=0; i<8; i++) {
+					selectWindow(orig);
+					run("Duplicate...", "title=B"+i);
+					selectWindow("B"+i); 					//selects the copy of the image to crop
+					image_width = getWidth;					//caculates width of the image
+					image_height = getHeight;					//caculates height of the image
+					well_width = image_width/8;				//caculates relative width of wells within the image
+					well_height = image_height/4;				//caculates relative height of wells within the image	
+					makeRectangle ( well_width*i, well_height*1, well_width, well_height);
+					run("Crop");						
+					saveAs("jpg", savedir + orig + "_B"+i+1);
+					}				
+				
+				for (i=0; i<8; i++) {
+					selectWindow(orig);
+					run("Duplicate...", "title=C"+i);
+					selectWindow("C"+i); 					//selects the copy of the image to crop
+					image_width = getWidth;					//caculates width of the image
+					image_height = getHeight;					//caculates height of the image
+					well_width = image_width/8;				//caculates relative width of wells within the image
+					well_height = image_height/4;				//caculates relative height of wells within the image	
+					makeRectangle ( well_width*i, well_height*2, well_width, well_height);
+					run("Crop");						
+					saveAs("jpg", savedir + orig + "_C"+i+1);
+					}				
+				for (i=0; i<8; i++) {
+					selectWindow(orig);
+					run("Duplicate...", "title=D"+i);
+					selectWindow("D"+i); 					//selects the copy of the image to crop
+					image_width = getWidth;					//caculates width of the image
+					image_height = getHeight;					//caculates height of the image
+					well_width = image_width/8;				//caculates relative width of wells within the image
+					well_height = image_height/4;				//caculates relative height of wells within the image	
+					makeRectangle ( well_width*i, well_height*3, well_width, well_height);
+					run("Crop");						
+					saveAs("jpg", savedir + orig + "_D"+i+1);
+					}				
+			
+				
+				
+				
+				
+				
+				
+			
+			//reset ROIs for netting/stripes/shell diagnostics
+			roiManager("reset");
+								
+			// close unnecessary image windows
+			run("Close All"); 
+
+			
+		} // end of cropping loop	
+			
+	} // end of if statement when choice ==0
+	if (choice==1) {	
+	folderChoice();
+	}
+} while (choice==1);
+
+exit("Finished!");	
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//These are the functions called by the macro
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////
+function resetImageJ() {
+	requires("1.48d");
+	// Only if needed uncomment these lines
+	//run("Proxy Settings...", "proxy=webproxy-chbs.eame.syngenta.org port=8080");
+	//run("Memory & Threads...", "maximum=1500 parallel=4 run");
+
+	run("Options...", "iterations=1 count=1 edm=Overwrite");
+	run("Line Width...", "line=1");
+	run("Colors...", "foreground=black background=white selection=yellow");
+	run("Clear Results");
+	run("Close All");
+	print("\\Clear");
+	run("ROI Manager...");
+	run("Input/Output...", "jpeg=75 gif=-1 file=.csv use_file copy_row save_column save_row");
+	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect=None decimal=3");
+}
+///////////////////////////////////////
+
+///////////////////////////////////////////////////////
+function folderChoice() {
+
+	path = getDirectory("Choose a folder of images to analyze"); 
+
+	// saves a folder for the processed images at your path with the following name
+  	savedir = path+TimeString+File.separator;
+ 	File.makeDirectory(savedir);
+
+	filelist = getFileList(path);
+	for (z=0; z<filelist.length; z++) {
+		 if (endsWith(filelist[z],"JPG")) {
+			folderstoprocess[filecount] = path;
+			filestoprocess[filecount] = filelist[z];
+			jpgcount++;
+			filecount++;
+		}
+		if (endsWith(filelist[z],"jpg")) {
+			folderstoprocess[filecount] = path;
+			filestoprocess[filecount] = filelist[z];
+			jpgcount++;
+			filecount++;
+		}
+		 if (endsWith(filelist[z],"tif")) {
+			folderstoprocess[filecount] = path;
+			filestoprocess[filecount] = filelist[z];
+			jpgcount++;
+			filecount++;
+		}
+		if (endsWith(filelist[z],"tiff")) {
+			folderstoprocess[filecount] = path;
+			filestoprocess[filecount] = filelist[z];
+			jpgcount++;
+			filecount++;
+		}
+	}
+var count = (count+1);
+
+}// end of Folderchoice Function
+///////////////////////////////////////////////////////
+
+//////////////////////////////////////////
+function getTimeString() {
+
+// time string for folder name
+
+MonthNames = newArray("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+     DayNames = newArray("Sun", "Mon","Tue","Wed","Thu","Fri","Sat");
+     getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
+     TimeString = DayNames[dayOfWeek]+"_";
+     if (dayOfMonth<10) {TimeString = TimeString+"0";}
+     TimeString = TimeString+dayOfMonth+"_"+MonthNames[month]+"_"+year+"_";
+     if (hour<10) {TimeString = TimeString+"0";}
+     TimeString = TimeString+hour+"";
+     if (minute<10) {TimeString = TimeString+"0";}
+     TimeString = TimeString+minute+"_";
+     if (second<10) {TimeString = TimeString+"0";}
+     TimeString = TimeString+second;
+
+} // end of getTimeString()
+//////////////////////////////////////////
+
+///////////////////////////////////////
+function clearScale() {
+
+run("Set Scale...", "distance=0 known=0 pixel=1 unit=pixel global");
+
+} // end of ClearScale () function {
+///////////////////////////////////////
